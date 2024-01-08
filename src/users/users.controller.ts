@@ -32,4 +32,9 @@ export class UsersController {
   async whoAmI(@Session() session: any) {
     return await this.usersService.findUserById(session.userId);
   }
+
+  @Post('/signout')
+  signout(@Session() session: any) {
+    session.userId = null;
+  }
 }
