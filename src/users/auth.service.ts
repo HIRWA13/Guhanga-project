@@ -4,9 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUser } from './interfaces/user.interface';
 import { randomBytes, scrypt as scrypter } from 'crypto';
 import { promisify } from 'util';
+import { User } from './entities/user.entity';
 
 const scrypt = promisify(scrypter);
 
@@ -14,7 +14,7 @@ const scrypt = promisify(scrypter);
 export class AuthService {
   constructor(private usersService: UsersService) {}
 
-  async signup(user: CreateUser) {
+  async signup(user: Omit<User, 'id'>) {
     const users = await this.usersService.findUserByEmail(user.email);
     if (users.length) {
       throw new BadRequestException(`User ${user.email} already exists`);
