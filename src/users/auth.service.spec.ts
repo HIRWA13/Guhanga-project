@@ -3,6 +3,8 @@ import { AuthService } from './auth.service';
 import { UsersService } from './users.service';
 
 describe('AuthService', () => {
+  let authService: AuthService;
+
   const user = {
     id: 1,
     fullName: 'foobar',
@@ -10,7 +12,13 @@ describe('AuthService', () => {
     email: 'foo@bay.com',
     password: 'password',
   };
-  let authService: AuthService;
+  const fakeUser = {
+    id: 1,
+    fullName: 'foobar',
+    phone: '098934',
+    email: 'foo@baek.com',
+    password: 'password',
+  };
   const mockUserService = {
     createUser: jest.fn((user) => user),
     findUserByEmail: jest.fn((email: string) =>
@@ -41,13 +49,6 @@ describe('AuthService', () => {
   });
 
   describe('signup', () => {
-    const fakeUser = {
-      id: 1,
-      fullName: 'foobar',
-      phone: '098934',
-      email: 'foo@baek.com',
-      password: 'password',
-    };
     it('should create a new user with a hashed and salted password', async () => {
       const newUser = await authService.signup(fakeUser);
       expect(newUser.password).not.toEqual(fakeUser.password);
@@ -64,6 +65,29 @@ describe('AuthService', () => {
       } catch (err) {
         return;
       }
+    });
+  });
+
+  describe('signin', () => {
+    // what should be tested in our signin function:
+    /**
+     * check if the user exists
+     * check if the provided password is valid,
+     * throw an error if the user does not exist
+     * throw if the password is invalid
+     */
+    // signin a user
+    it('should signin a user', async () => {
+      const logUser = {
+        id: 1,
+        fullName: 'foobar',
+        phone: '098934',
+        email: 'foot@bay.com',
+        password: 'password',
+      };
+      await authService.signup(logUser);
+      const user = await authService.signin(logUser.email, logUser.password);
+      expect(user).toBeDefined();
     });
   });
 });
