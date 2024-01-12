@@ -95,5 +95,26 @@ describe('AuthService', () => {
 
       await expect(user).rejects.toThrow();
     });
+
+    it('should return user if password is valid', async () => {
+      const password = 'password';
+      const salt = 'salt';
+      const hashedPassword = (await scrypt(password, salt, 32)) as Buffer;
+
+      const user = {
+        id: 2,
+        fullName: 'Test User',
+        email: 'jest@example.com',
+        password: `${salt}.${hashedPassword.toString('hex')}`,
+        phone: '123456677',
+      };
+
+      usersService.findUserByEmail.mockResolvedValue([user]);
+
+      const loggedUser = await authService.signin('jest@example.com', password);
+
+      expect(loggedUser).toBeDefined();
+      expect(loggedUser).toEqual(user);
+    });
   });
 });
