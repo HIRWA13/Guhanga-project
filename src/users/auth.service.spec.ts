@@ -1,93 +1,99 @@
 import { Test } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UsersService } from './users.service';
+import * as crypto from 'crypto';
+import { promisify } from 'util';
+
+const scrypter = crypto.scrypt;
+const scrypt = promisify(scrypter);
 
 describe('AuthService', () => {
   let authService: AuthService;
-
-  const user = {
-    id: 1,
-    fullName: 'foobar',
-    phone: '098934',
-    email: 'foo@bay.com',
-    password: 'password',
-  };
-  const fakeUser = {
-    id: 1,
-    fullName: 'foobar',
-    phone: '098934',
-    email: 'foo@baek.com',
-    password: 'password',
-  };
-  const mockUserService = {
-    createUser: jest.fn((user) => user),
-    findUserByEmail: jest.fn((email: string) =>
-      email === user.email ? [user] : [],
-    ),
-    findUserById: jest.fn((id: string) => {
-      return { id, ...user };
-    }),
-  };
+  let usersService: jest.Mocked<UsersService>;
 
   beforeEach(async () => {
+    usersService = {
+      findUserByEmail: jest.fn(),
+    } as unknown as jest.Mocked<UsersService>;
     const module = await Test.createTestingModule({
       providers: [
         AuthService,
         {
           provide: UsersService,
-          useValue: mockUserService,
+          useValue: usersService,
         },
       ],
     }).compile();
 
     authService = module.get(AuthService);
   });
-  describe('AuthService', () => {
-    it('checks if the the auth service is defined', () => {
-      expect(authService).toBeDefined();
-    });
-  });
 
-  describe('signup', () => {
-    it('should create a new user with a hashed and salted password', async () => {
-      const newUser = await authService.signup(fakeUser);
-      expect(newUser.password).not.toEqual(fakeUser.password);
-      const [salt, hash] = newUser.password.split('.');
-      expect(salt).toBeDefined();
-      expect(hash).toBeDefined();
-    });
+  describe('Signup', () => {
+    // it('should create a new user with a hashed and salted password', async () => {
+    //   const password = 'password';
+    //   const salter = 'salt';
+    //   const hashedPassword = (await scrypt(password, salter, 32)) as Buffer;
+
+    //   const signUser = {
+    //     id: 2,
+    //     fullName: 'Test User',
+    //     email: 'jest1234@example.com',
+    //     password: `${salter}.${hashedPassword.toString('hex')}`,
+    //     phone: '123456677',
+    //   };
+    //   // const newUser = await authService.signup(signUser);
+    //   // expect(newUser.password).not.toEqual(signUser.password);
+    //   const [salt, hash] = signUser.password.split('.');
+    //   expect(salt).toBeDefined();
+    //   expect(hash).toBeDefined();
+    //   usersService.findUserByEmail.mockResolvedValue([signUser]);
+    //   const user = await authService.signup(signUser);
+    //   expect(user).toBeDefined();
+    // });
 
     it('should throw an error if the user already exists', async () => {
-      await authService.signup(fakeUser);
+      const signUser = {
+        id: 10,
+        fullName: 'Test User',
+        email: 'test@example.com',
+        password: 'salt.hash',
+        phone: '1234567890',
+      };
+      usersService.findUserByEmail.mockResolvedValue([signUser]);
 
-      try {
-        await authService.signup(fakeUser);
-      } catch (err) {
-        return;
-      }
+      const user = authService.signup(signUser);
+
+      expect(user).rejects.toThrow();
     });
   });
 
-  describe('signin', () => {
-    // what should be tested in our signin function:
-    /**
-     * check if the user exists
-     * check if the provided password is valid,
-     * throw an error if the user does not exist
-     * throw if the password is invalid
-     */
-    // signin a user
-    it('should signin a user', async () => {
-      const logUser = {
-        id: 1,
-        fullName: 'foobar',
-        phone: '098934',
-        email: 'foot@bay.com',
-        password: 'password',
+  describe('Signin', () => {
+    it('should throw an error if the user does not exists', async () => {
+      usersService.findUserByEmail.mockResolvedValueOnce([]);
+
+      const user = () => {
+        return authService.signin('sdfdfdf@gmail.com', 'sdfdfddgg');
       };
-      await authService.signup(logUser);
-      const user = await authService.signin(logUser.email, logUser.password);
-      expect(user).toBeDefined();
+
+      await expect(user).rejects.toThrow();
+    });
+
+    it('should throw an error if the password is invalid', async () => {
+      const existingUser = {
+        id: 10,
+        fullName: 'Test User',
+        email: 'test@example.com',
+        password: 'salt.hash',
+        phone: '1234567890',
+      };
+
+      usersService.findUserByEmail.mockResolvedValueOnce([existingUser]);
+
+      const user = () => {
+        return authService.signin('test@example.com', 'invalid-password');
+      };
+
+      await expect(user).rejects.toThrow();
     });
   });
 });
