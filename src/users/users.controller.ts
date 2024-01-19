@@ -13,7 +13,7 @@ import { AuthService } from './auth.service';
 import { UsersService } from './users.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from './entities/user.entity';
-import { AuthGuard } from 'src/guards/auth.guard';
+import { AuthGuard } from '../guards/auth.guard';
 
 @serialize(UserDto)
 @Controller('auth')
