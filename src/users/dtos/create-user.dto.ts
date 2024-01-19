@@ -1,4 +1,5 @@
 import { IsEmail, IsString } from 'class-validator';
+import { Review } from 'src/reviews/entities/reviews.entity';
 
 export class CreateUserDto {
   @IsString()
@@ -12,4 +13,5 @@ export class CreateUserDto {
 
   @IsString()
   password: string;
+  reviews: Review[];
 }
