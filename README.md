@@ -27,3 +27,7 @@ $ npm run start:dev
 $ npm run start:dev
  open swagger at `http://localhost:3000/api`
 ```
+
+## Author
+
+- [Junior Hirwa](https://github.com/HIRWA13)
